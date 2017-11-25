@@ -27,7 +27,7 @@ using tuple_S = std::tuple<char, size24, bool, long double>;
 ```
 
 The main point is that the order of attributes in declaration of class affects size of the structure in C++,
-so we want to introduce somethink like `attr_mu::packed_tuple<...>` with named access to its elemets.
+so we want to introduce something like `attr_mu::packed_tuple<...>` with named access to its elemets.
 
 #### Statistics (clang 9.0.0. / gcc 5.4.1):
 
@@ -47,5 +47,5 @@ so we want to introduce somethink like `attr_mu::packed_tuple<...>` with named a
 | tuple_S         | 64         | 16       |
 +-----------------------------------------+
 ```
-More over when we set  `using size24 = std::string` with **gcc** we obtaion: `warning: ignoring packed attribute because of unpacked non-POD field 'std::string packed_aligned_S::name'`.
+Moreover when we set  `using size24 = std::string` with **gcc** we obtain: `warning: ignoring packed attribute because of unpacked non-POD field 'std::string packed_aligned_S::name'`.
 
