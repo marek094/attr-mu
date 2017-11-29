@@ -1,4 +1,4 @@
-# attr-mu
+# attr-MU
 Experimental meta MU for class/structure attributes 'sizeof' optimization
 
 ### Goal
