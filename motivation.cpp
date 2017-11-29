@@ -20,7 +20,7 @@ struct bad_S {
 struct nice_S {
     size24 name;
     char sign;
-    bool is_man;
+bool is_man;
     long double weight;
 };
 
@@ -45,7 +45,7 @@ using tuple_S = std::tuple<char, size24, bool, long double>;
 #define PRINT_SEP   printf("+%s+\n", std::string(51, '-').c_str())
 #define PRINT_HEAD  printf("| %-16s| %-15s| %-15s|\n", "type", "sizeof (bytes)", "alignof")
 
-int main() {
+int _main() {
     PRINT_SEP;
     PRINT_HEAD;
     PRINT_SEP;
@@ -64,3 +64,7 @@ int main() {
     
     return 0;
 }
+
+
+
+
