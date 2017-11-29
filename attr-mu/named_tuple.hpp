@@ -11,7 +11,30 @@
 namespace mu {
     
     namespace impl {
+        
         using ull = unsigned long long;
+        
+        constexpr std::size_t len_(mu::impl::ull x) {
+            std::size_t len = 0;
+            for (; x; x /= 128) len++;
+            return len;
+        }
+        
+        struct string_ {
+            constexpr string_() = default;
+            operator std::string() {
+                return {data, data+9};
+            }
+            char data[9]{0,0,0,0,0,0,0,0,0};
+        };
+        
+        constexpr string_ rts_(mu::impl::ull x) {
+            string_ s;
+            for (auto it=s.data+8; x; x /= 128)
+                *it-- = x%128;
+            return s;
+        }
+
         
         template<typename T> struct wrap {
             wrap() = default;
