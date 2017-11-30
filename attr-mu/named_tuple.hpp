@@ -35,35 +35,64 @@ namespace mu {
             return s;
         }
 
+        // <Wrappers> {
         // wrapper for PODs
         template<typename T> struct wrap {
             wrap() = default;
             wrap(T val) : val{val} { }
+            wrap(const wrap<T>& w) : val{w.val} { }
             operator T&() { return val; }
             operator const T&() const { return val; }
             T val;
         };
         
+        // wraper for reference
+        template<typename T> struct ref_wrap {
+            ref_wrap() = default;
+            ref_wrap(T& ref) : ptr{std::addressof(ref)} { }
+            ref_wrap(T&& ref) : ptr{std::addressof(ref)} { }
+            ref_wrap(const ref_wrap<T>& w) : ptr{w.ptr} { }
+            operator T&() { return *ptr; }
+            operator const T&() const { return *ptr; }
+            T* ptr;
+        };
+        // } </Wrappers>
+        
+        // <Dispatch> {
         template<typename T>
-        using inheritable = typename std::conditional<std::is_class<T>::value, T, wrap<T>>::type;
+        using inheritable = typename std::conditional<
+            std::is_class<T>::value,
+                T,
+                wrap<T>
+        >::type;
+        
+        template<typename T>
+        using dispatch = typename std::conditional<
+            std::is_reference<T>::value,
+                ref_wrap<std::remove_reference_t<T>>,
+                inheritable<T>
+        >::type;
+        // } </Dispatch>
     } // namespace impl;
     
     
+    // Note: encaptulation vs. inheritace (-> better constructors)
     template<impl::ull Data, typename T>
-    struct attr : impl::inheritable<T> {
-        using impl::inheritable<T>::inheritable;
+    struct attr : impl::dispatch<T> {
+        using impl::dispatch<T>::dispatch;
         
         constexpr attr() = default;
+        
         template<typename X>
-        constexpr attr(X&& v) : impl::inheritable<T>(std::forward<X>(v)) { }
+        constexpr attr(X&& v) : impl::dispatch<T>(std::forward<X>(v)) { }
         
         static constexpr impl::ull str = Data;
         static constexpr bool is_attr = true;
         
-        T& value() & { return static_cast<impl::inheritable<T> &>(*this); }
-        const T& value() const & { return static_cast<const impl::inheritable<T> &>(*this); }
-        T&& value() && { return static_cast<impl::inheritable<T> &&>(*this); }
-        const T&& value() const && { return static_cast<const impl::inheritable<T> &&>(*this); }
+        T& value() & { return static_cast<impl::dispatch<T> &>(*this); }
+        const T& value() const & { return static_cast<const impl::dispatch<T> &>(*this); }
+        T&& value() && { return static_cast<impl::dispatch<T> &&>(*this); }
+        const T&& value() const && { return static_cast<const impl::dispatch<T> &&>(*this); }
     };
     
     namespace impl {
@@ -73,12 +102,12 @@ namespace mu {
             return res;
         }
         
+        // <ImplObjects> {
         template<ull, typename...>
         struct find { void operator()() {} };
         // Search
         template<ull S, ull I, typename T, typename... Ts>
-        struct find<S, list<attr<I,T>, Ts...>>
-        : find<S, list<Ts...> > {
+        struct find<S, list<attr<I,T>, Ts...>> : find<S, list<Ts...> > {
             using list_ = list<attr<S,T>, Ts...>;
             // Not found
             using find<S, list<Ts...> >::operator();
@@ -89,41 +118,46 @@ namespace mu {
             auto&& operator ()(const list_&& list) { return list.val_.value(); }
         };
         
-//  TODO:
-//        template<typename...> struct assigner {};
-//        template<ull I, typename List, typename T, typename... As>
-//        struct assigner<list<attr<I, T>, As...>, List> {
-//            auto operator()(const List& from) {
-//                list<attr<I, T>, As...> res {
-//                    find<I, List>{}(from),
-//                    assigner<list<As...>>{}(from)
-//                };
-//
-////                impl::find<I, type_>{}(data_tupl_) = from.val_;
-////                assign_impl(static_cast<const list<Ts...>>(from));
-//                return res;
-//            }
-//        };
-
+        // OutdatedNote: std::move from casted
+        template<typename, typename List>
+        struct swuffle { inline list<> operator()(const List&) { return {}; } };
         
+        template<typename List, ull I, typename T, typename... Ts>
+        struct swuffle<list<attr<I,T>, Ts...>, List> : swuffle<list<Ts...>, List> {
+            using list_ = list<attr<I,T>, Ts...>;
+            using swuffle<list<Ts...>, List>::operator();
+            inline list_ operator()(const List& from) {
+                // using 'piecewise constructor'
+                return { impl::find<I, List>{}(from),
+                    swuffle<list<Ts...>, List>{}(from) };
+            }
+            inline list_ operator()(List&& from) {
+                using std::move;
+                // move(from) twice, once we want to move only searched I index
+                return { move( impl::find<I, List>{}( move(from) ) ),
+                    move( swuffle<list<Ts...>, List>{}( move(from) ) ) };
+            }
+        };
+        // } </ImplObjects>
     }
     
     template<typename... As>
     class data {
     private:
         using self_ = data<As...>;
-        using type_ = mu::list<As...>;
-//        TODO:
-//        using type_ = mu::merge_sort_t<mu::list<As...>>;
+        using unordered_type_ = list<As...>;
+        using type_ = merge_sort_t<list<As...>>;
         static constexpr std::size_t size_ = sizeof...(As);
         
     public:
-        template<class = std::enable_if_t<(size_ > 0)>>
-        constexpr data(As&&... values) : data_tupl_{std::forward<As>(values)...} { }
-
-        template<typename...>
-        friend class data;
+        template<typename...> friend class data;
         
+        template<class = std::enable_if_t<(size_ > 0)>>
+        constexpr data(As&&... values) : data_tupl_{
+            // Note: shuffle values to be sorted
+            impl::swuffle<type_, unordered_type_>{}({std::forward<As>(values)...})
+        } { }
+
         constexpr data() {}
         
         template<typename... Ts>
@@ -181,18 +215,18 @@ namespace mu {
     private:
         
         // <Assign_impl> {
-        void assign_impl(const list<>&) { }
+        inline void assign_impl(const list<>&) { }
 
         template<impl::ull I, typename T, typename... Ts>
-        void assign_impl(const list<attr<I, T>, Ts...>& from) {
+        inline void assign_impl(const list<attr<I, T>, Ts...>& from) {
             impl::find<I, type_>{}(data_tupl_) = from.val_;
-            assign_impl(static_cast<const list<Ts...>>(from));
+            assign_impl(static_cast<list<Ts...>>(from));
         }
 
-        void assign_impl(list<>&&) {}
+        inline void assign_impl(list<>&&) {}
         
         template<impl::ull I, typename T, typename... Ts>
-        void assign_impl(list<attr<I, T>, Ts...>&& from) {
+        inline void assign_impl(list<attr<I, T>, Ts...>&& from) {
             impl::find<I, type_>{}(data_tupl_) = std::move(from.val_);
             assign_impl(static_cast<list<Ts...>>(std::move(from)));
         }

@@ -20,7 +20,7 @@ using namespace mu;
 TEST_CASE( "A mu::named_tuple<> implementation", "[named_tuple_impl]") {
     
     SECTION ( " mu::impl::wrap<> ") {
-        mu::impl::wrap<int> wi = 5;
+        impl::wrap<int> wi = 5;
         
         REQUIRE( wi == 5);
         
@@ -29,7 +29,11 @@ TEST_CASE( "A mu::named_tuple<> implementation", "[named_tuple_impl]") {
         
         REQUIRE( wi == 6);
         REQUIRE( i == 6);
-    
+        
+        int j = 4;
+        attr<"x"_mu, int&> wri{j};
+        attr<"x"_mu, int&> wri2 = std::move(wri);
+        
     }
     
     SECTION( "mu::impl::inheritable" ) {
@@ -39,7 +43,7 @@ TEST_CASE( "A mu::named_tuple<> implementation", "[named_tuple_impl]") {
         REQUIRE( std::is_same<impl::wrap<int>, mu::impl::inheritable<int>>::value == true );
     }
     
-    SECTION( " '\"\" _mu' literal " ) {
+    SECTION( "'\"\" _mu' literal" ) {
         
         impl::ull val = "123456789"_mu;
         std::string s = impl::rts_(val);
@@ -50,6 +54,14 @@ TEST_CASE( "A mu::named_tuple<> implementation", "[named_tuple_impl]") {
         s = impl::rts_(val);
         
         REQUIRE( s == "234567890" );
+    }
+    
+    SECTION( "Assigner" ) {
+        
+        using t_t = list<attr<"a"_mu, int>, attr<"b"_mu, string>>;
+        using f_t = list<attr<"b"_mu, string>, attr<"a"_mu, int>>;
+        t_t f = impl::swuffle<t_t,f_t>{}(f_t{"333",15});
+        
     }
 }
 
@@ -174,17 +186,17 @@ TEST_CASE( "A mu::named_tuple<> tests", "[named_tuple]" ) {
         int i = 9;
         named_tuple<attr<""_mu, int&>> t{i};
         get<""_mu>(t)++;
-        
+
         REQUIRE( i == 10 );
-        
+
         named_tuple<attr<""_mu, int&>> t2{t};
         get<""_mu>(t2)++;
-        
+
         REQUIRE( i == 11 );
-        
+
         int j = 42;
         named_tuple<attr<""_mu, int&>> t3{j};
-        
+
         REQUIRE( j == 42 );
         
     }
@@ -193,15 +205,15 @@ TEST_CASE( "A mu::named_tuple<> tests", "[named_tuple]" ) {
         
         using st = named_tuple<attr<"r"_mu, int&>, attr<"u"_mu, unsigned>, attr<"d"_mu, double>>;
         using nd = named_tuple<attr<"u"_mu, unsigned>, attr<"d"_mu, double>, attr<"r"_mu, int&>>;
-        
+
         int ai = 10;
         int bi = 20;
         st a {ai, 1u, .1};
         nd b {2u, .2, bi};
-        
+
         get<"r"_mu>(a)++;
         get<"r"_mu>(b)++;
-        
+
         REQUIRE( ai == 11 );
         REQUIRE( bi == 21 );
         REQUIRE( &ai == &get<"r"_mu>(a) );
