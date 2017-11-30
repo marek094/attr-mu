@@ -30,14 +30,18 @@ namespace mu {
     };
     
     template<typename T, class... Ts>
-    struct list<T, Ts...> : list<Ts...> {
+    struct list<T, Ts...> : public list<Ts...> {
         static constexpr type< std::pair<T, list<Ts...>> > node{};
         static std::size_t size() { return sizeof...(Ts) + 1; }
         static std::string to_string() {
             return std::string{typeid(T).name()} + " " + list<Ts...>::to_string();
         }
         constexpr list() : list<Ts...>{}, val_{} { }
-        constexpr list(T&& val, Ts&&...vals)
+        template<typename Rest>
+        constexpr list(T&& val, Rest&& vals)
+            : list<Ts...>{std::forward<Rest>(vals)}
+            , val_{std::forward<T>(val)} { }
+        constexpr list(T&& val, Ts&&... vals)
             : list<Ts...>{std::forward<Ts>(vals)...}
             , val_{std::forward<T>(val)} { }
         T val_;
@@ -95,8 +99,6 @@ namespace mu {
                 shift_t<TT,typename bubble<list<T, Ts...>>::type>
         >::type;
     };
-    
-    
     
     template<int I, typename Ignore> struct bubble_sort_impl {};
     template<int I, typename... Ts>
