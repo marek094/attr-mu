@@ -34,6 +34,10 @@ TEST_CASE( "A mu::named_tuple<> implementation", "[named_tuple_impl]") {
         attr<"x"_mu, int&> wri{j};
         attr<"x"_mu, int&> wri2 = std::move(wri);
         
+        wri2++;
+        
+        REQUIRE(j == 5);
+        
     }
     
     SECTION( "mu::impl::inheritable" ) {
@@ -255,6 +259,8 @@ TEST_CASE( "A mu::named_tuple<> tests", "[named_tuple]" ) {
         
 //        auto z = x; <-- not poss
         auto z = std::move(x);
+        
+        REQUIRE( get<0>(z) == 42 );
         
         using tt_Ki = named_tuple<attr<"K"_mu, K>, attr<"i"_mu, int>>;
         using tt_iK = named_tuple<attr<"i"_mu, int>, attr<"K"_mu, K>>;
