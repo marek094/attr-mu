@@ -6,9 +6,11 @@
 #include <cstdio>
 #include <string>
 #include <utility>
+#include <tuple>
+#include "attr_mu.hpp"
 
-using size24 = long long[3];
-//using size24 = std::string;
+//using size24 = long long[3];
+using size24 = std::string;
 
 struct bad_S {
     char sign;
@@ -40,12 +42,18 @@ struct packed_aligned_S {
 
 using tuple_S = std::tuple<char, size24, bool, long double>;
 
+using named_tuple_S = mu::named_tuple<
+    mu::attr<"sign"_mu, char>,
+    mu::attr<"name"_mu, size24>,
+    mu::attr<"is_man"_mu, bool>,
+    mu::attr<"weight"_mu, long double>
+>;
 
 #define PRINT(type) printf("| %-16s| %-15lu| %-15lu|\n", #type, sizeof(type), alignof(type))
 #define PRINT_SEP   printf("+%s+\n", std::string(51, '-').c_str())
 #define PRINT_HEAD  printf("| %-16s| %-15s| %-15s|\n", "type", "sizeof (bytes)", "alignof")
 
-int _main() {
+int main() {
     PRINT_SEP;
     PRINT_HEAD;
     PRINT_SEP;
@@ -60,6 +68,8 @@ int _main() {
     PRINT(packed_S);
     PRINT(packed_aligned_S);
     PRINT(tuple_S);
+    PRINT_SEP;
+    PRINT(named_tuple_S);
     PRINT_SEP;
     
     return 0;
