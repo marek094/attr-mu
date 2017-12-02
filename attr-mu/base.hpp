@@ -16,12 +16,6 @@ namespace mu {
         using ull = unsigned long long;
     }
     
-    class boo {
-        boo() = delete;
-        auto operator=(const boo& ) = delete;
-        auto operator=(boo&& ) = delete;
-    };
-    
     template<typename T> struct type { using get = T; };
     template<typename T> using type_t = typename type<T>::get;
     
@@ -98,7 +92,7 @@ namespace mu {
     template<typename T, typename TT, typename... Ts>
     struct bubble<list<T, TT, Ts...>> {
         using type = typename std::conditional<
-            (sizeof(T) > sizeof(TT)),
+            (alignof(T) > alignof(TT)),
                 shift_t<T, typename bubble<list<TT,Ts...>>::type>,
                 shift_t<TT,typename bubble<list<T, Ts...>>::type>
         >::type;
@@ -166,7 +160,7 @@ namespace mu {
     template<typename T, typename... Ts, typename TT, typename... TTs>
     struct merge<list<T, Ts...>, list<TT, TTs...>> {
         using type = typename std::conditional<
-            (sizeof(T) > sizeof(TT)),
+            (alignof(T) > alignof(TT)),
                 shift_t<T , typename merge<list<   Ts...>, list<TT, TTs...>>::type>,
                 shift_t<TT, typename merge<list<T, Ts...>, list<TTs...>>::type>
         >::type;
@@ -217,10 +211,6 @@ namespace mu {
     template<std::size_t... Ts>
     using seq = std::integer_sequence<std::size_t, Ts...>;
     
-    template <typename... Ts>
-    struct to_sizeof {
-        using type = list<Ts...>;
-    };
 
 }
 

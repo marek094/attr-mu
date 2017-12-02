@@ -118,6 +118,11 @@ namespace mu {
     private:
         using self_ = data<As...>;
         using unordered_type_ = list<As...>;
+        // Note: type_ has As... sort by 'alignof' in descendant order,
+        //             we get optimal 'sizeof(list<As...>)' assuming that:
+        //             (1) alignof(list<As...>) := MAX( align(As)... )
+        //             (2) sizeof(T) == alignof(T) * K; K >= 1;
+        //             (3) alignof(T) == 2^K;
         using type_ = merge_sort_t<list<As...>>;
         static constexpr std::size_t size_ = sizeof...(As);
         

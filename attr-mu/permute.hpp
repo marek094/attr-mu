@@ -56,11 +56,6 @@ namespace mu { namespace impl {
         mu::impl::sort(c.begin(), c.end());
         return c;
     }
-
-    template<std::size_t N>
-    constexpr array_wrap<ull, N> reorder_alg(array_wrap<ull, N> arr) {
-        return {};
-    }
     
     template<ull... Vs, std::size_t... Is, std::size_t N = sizeof...(Vs)>
     constexpr auto to_sorted_array_helper(std::index_sequence<Is...>) {
@@ -73,19 +68,16 @@ namespace mu { namespace impl {
         return to_sorted_array_helper<Vs...>(std::make_index_sequence<sizeof...(Vs)>{});
     }
 
-    template<unsigned I, ull... Vs>
-    constexpr unsigned select() {
-        auto arr = to_array<Vs...>();
-        mu::impl::sort(arr.begin(), arr.end());
-        return arr[I];
+    template<typename... Ts>
+    constexpr auto to_sizeof_array() {
+        return to_array<sizeof(Ts)...>();
     }
-
-    template<ull V>
-    struct checks {
-//        using type = checks< val<1, 10,20>() >;
-    };
-
-
+    
+    template<typename... Ts>
+    constexpr auto to_alignof_array() {
+        return to_array<alignof(Ts)...>();
+    }
+    
 }} // namespace mu::impl
     
 #endif /* _PERMUTE_H_ */
