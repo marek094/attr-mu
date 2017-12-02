@@ -7,33 +7,10 @@
 #define _NAMED_TUPLE_H_
 
 #include "base.hpp"
+#include "string_param.hpp"
 
 namespace mu {
-    
     namespace impl {
-        
-        using ull = unsigned long long;
-        
-        constexpr std::size_t len_(mu::impl::ull x) {
-            std::size_t len = 0;
-            for (; x; x /= 128) len++;
-            return len;
-        }
-        
-        struct string_ {
-            constexpr string_() = default;
-            operator std::string() {
-                return {data, data+9};
-            }
-            char data[9]{0,0,0,0,0,0,0,0,0};
-        };
-        
-        constexpr string_ rts_(mu::impl::ull x) {
-            string_ s;
-            for (auto it=s.data+8; x; x /= 128)
-                *it-- = x%128;
-            return s;
-        }
 
         // <Wrappers> {
         // wrapper for PODs
@@ -96,12 +73,7 @@ namespace mu {
     };
     
     namespace impl {
-        constexpr inline ull str_(const char *s) {
-            ull res = 0;
-            for (; *s; ++s) res = res*128 + *s % 128;
-            return res;
-        }
-        
+
         // <ImplObjects> {
         template<ull, typename...>
         struct find { void operator()() {} };
@@ -246,8 +218,5 @@ namespace mu {
 
 } // namespace mu;
 
-constexpr auto operator"" _mu(const char* str, std::size_t) {
-    return mu::impl::str_(str);
-}
 
 #endif /* _NAMED_TUPLE_H_ */

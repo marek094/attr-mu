@@ -12,6 +12,10 @@
 
 namespace mu {
     
+    namespace impl {
+        using ull = unsigned long long;
+    }
+    
     class boo {
         boo() = delete;
         auto operator=(const boo& ) = delete;
