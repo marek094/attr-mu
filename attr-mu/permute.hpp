@@ -7,32 +7,12 @@
 #define _PERMUTE_H_
 
 #include "base.hpp"
+#include "array_wrap.hpp"
 
 #include <array>
 #include <algorithm>
 
 namespace mu { namespace impl {
-
-    template<typename T, std::size_t N>
-    struct array_wrap {
-        constexpr array_wrap() = default;
-        template<typename... Ts, class = std::enable_if_t<(sizeof...(Ts) == N)>>
-        constexpr array_wrap(Ts... args) : data{args...} { }
-        constexpr array_wrap(array_wrap&& aw) = default;
-        constexpr array_wrap(const array_wrap& aw) = default;
-        constexpr bool operator==(const array_wrap& p) const {
-            for (std::size_t i=0; i < N; ++i) if (data[i] != p.data[i]) return false;
-            return true;
-        }
-        constexpr bool operator!=(const array_wrap& p) const { return !(*this == p); }
-        constexpr T* begin() { return &data[0]; }
-        constexpr T* end() { return &data[0] + N; }
-        constexpr T& operator[](std::size_t s) { return data[s]; }
-        constexpr const T& operator[](std::size_t s) const { return data[s]; }
-        using type = T;
-        constexpr std::size_t size() { return N; }
-        T data[N];
-    };
 
     template<class Iter>
     constexpr void sort(Iter begin, Iter end) {
@@ -57,11 +37,6 @@ namespace mu { namespace impl {
         
         sort(begin, right);
         sort(left, end);
-    }
-
-    template<ull... Vs>
-    constexpr auto to_array() -> array_wrap<ull, sizeof...(Vs)> {
-        return {Vs...};
     }
 
     template<ull... Vs, class Func>
