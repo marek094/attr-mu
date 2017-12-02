@@ -214,8 +214,13 @@ namespace mu {
     };
 
     template<impl::ull... Is, typename... Ts>
-    constexpr auto attr_mu(attr<Is,Ts>&&... args) {
+    constexpr auto make_named_tuple(attr<Is,Ts>&&... args) {
         return data<attr<Is,Ts>...>(std::forward<attr<Is,Ts>>(args)...);
+    }
+    
+    template<impl::ull I, typename T>
+    constexpr auto make_attr(T&& arg) {
+        return attr<I, T>(std::forward<T>(arg));
     }
     
     template<typename ...As>

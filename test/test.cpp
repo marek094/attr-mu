@@ -10,6 +10,7 @@
 
 #include <vector>
 #include <tuple>
+#include <utility>
 #include <string>
 #include <type_traits>
 
@@ -71,13 +72,13 @@ TEST_CASE( "A mu::named_tuple<> implementation", "[named_tuple_impl]") {
 
 TEST_CASE( "A mu::named_tuple<> tests", "[named_tuple]" ) {
     
-    auto a = attr_mu( attr<"Hell"_mu, int>{3}
-                     ,attr<"Hi"_mu, double>(3.14)
-                     ,attr<"Hi2"_mu, double>()
-                     ,attr<"cool"_mu, vector<int>>{14,2,3,4}
-                     ,attr<"boo"_mu, string>{"SS string"}
-                     ,attr<"tuple"_mu, tuple<int, vector<int>>>{3,{55,666,7777}}
-                     );
+    auto a = make_named_tuple( attr<"Hell"_mu, int>{3}
+                              ,attr<"Hi"_mu, double>(3.14)
+                              ,attr<"Hi2"_mu, double>()
+                              ,attr<"cool"_mu, vector<int>>{14,2,3,4}
+                              ,attr<"boo"_mu, string>{"SS string"}
+                              ,attr<"tuple"_mu, tuple<int, vector<int>>>{3,{55,666,7777}}
+                              );
     
     SECTION( "Values of members by .at<...>()" ) {
     
@@ -96,7 +97,41 @@ TEST_CASE( "A mu::named_tuple<> tests", "[named_tuple]" ) {
         
     }
     
-    SECTION( "Multiple assignment ") {
+    SECTION( "Nested named_tuples" ) {
+        
+        auto x = make_named_tuple( make_attr<"integer"_mu>(123456)
+                                  ,make_attr<"nested@1"_mu>(
+                                      make_named_tuple( make_attr<"nested attr"_mu>(2.3f)
+                                                       ,make_attr<"nested@2"_mu>(
+                                                           make_named_tuple(
+                                                               attr<"V$int"_mu, vector<int>>{1,2,3}
+                                                           )
+                                                        )
+                                                       )
+                                  )
+        );
+        
+        x.at<"nested@1"_mu>().at<"nested@2"_mu>().at<"V$int"_mu>().push_back(999);
+        
+        REQUIRE( x.at<"nested@1"_mu>().at<"nested@2"_mu>().at<"V$int"_mu>().back() == 999 );
+        
+    }
+    
+    SECTION( "Partial constructor" ) {
+        
+        using nt_t = named_tuple<
+            attr<"x"_mu, double>,
+            attr<"y"_mu, double>,
+            attr<"a][a"_mu, vector<int>>,
+            attr<"another"_mu, pair<int, int>>
+        >;
+        
+//        TODO: pairwise assigner
+        nt_t nt {make_named_tuple( attr<"x"_mu, double>(3.141592) )};
+        
+    }
+    
+    SECTION( "Multiple assignment" ) {
         
         REQUIRE( a.at<"Hi"_mu>() == 3.14 );
 
