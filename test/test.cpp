@@ -367,18 +367,32 @@ TEST_CASE( "Basic permute.hpp tests", "[permute]") {
         REQUIRE( ar2[0] < ar2[1] );
     }
     
-    SECTION( "to_array " ) {
+    SECTION( "to_array" ) {
         auto v1 = impl::to_array<60, 50, 40, 30, 20, 10>();
         
         REQUIRE( v1[1] == 50u );
         REQUIRE( v1[3] == 30u );
     }
     
-    SECTION( "to_sorted_array " ) {
+    SECTION( "to_sorted_array" ) {
         auto v1 = impl::to_sorted_array<60, 10, 40, 30, 20, 50>();
         auto v1_sorted = impl::to_array<10, 20, 30, 40, 50, 60>();
         
         REQUIRE( v1 == v1_sorted );
+    }
+    
+    SECTION( "to_sizeof_array" ) {
+        auto v1 = impl::to_sizeof_array<int, char, double>();
+        auto v2 = impl::to_array<sizeof(int), sizeof(char), sizeof(double)>();
+    
+        REQUIRE( v1 == v2 );
+    }
+    
+    SECTION( "to_alignof_array" ) {
+        auto v1 = impl::to_alignof_array<int, char, double>();
+        auto v2 = impl::to_array<alignof(int), alignof(char), alignof(double)>();
+        
+        REQUIRE( v1 == v2 );
     }
     
 }
