@@ -338,9 +338,47 @@ TEST_CASE( "A mu::impl::assigner", "[mu::impl::assigner]" ) {
     
     REQUIRE( x.at<"s"_mu>() == "b" );
     
-    
 }
 
-
-
-
+TEST_CASE( "Basic permute.hpp tests", "[permute]") {
+    
+    SECTION( "mu::sort") {
+        for (int times = 4; times--; ) {
+            array<int, 9> ar {{1,33,22,444,32,12,11,2,8}};
+            std::random_shuffle(ar.begin(), ar.end());
+            array<int, 9> ar2 = ar;
+            mu::impl::sort(ar.begin(),   ar.end());
+            std::sort(ar2.begin(), ar2.end());
+            
+//            for (auto p: ar) { cout << p << " "; } cout << endl;
+//            for (auto p: ar2) { cout << p << " "; } cout << endl;
+            
+            REQUIRE( ar == ar2 );
+        }
+    }
+    
+    SECTION( "mu::sort - special cases") {
+        array<int, 1> ar {{1}};
+        mu::impl::sort(ar.begin(), ar.end());
+        
+        array<int, 2> ar2 {{2, 1}};
+        mu::impl::sort(ar2.begin(), ar2.end());
+        
+        REQUIRE( ar2[0] < ar2[1] );
+    }
+    
+    SECTION( "to_array " ) {
+        auto v1 = impl::to_array<60, 50, 40, 30, 20, 10>();
+        
+        REQUIRE( v1[1] == 50u );
+        REQUIRE( v1[3] == 30u );
+    }
+    
+    SECTION( "to_sorted_array " ) {
+        auto v1 = impl::to_sorted_array<60, 10, 40, 30, 20, 50>();
+        auto v1_sorted = impl::to_array<10, 20, 30, 40, 50, 60>();
+        
+        REQUIRE( v1 == v1_sorted );
+    }
+    
+}

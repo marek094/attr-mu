@@ -8,5 +8,6 @@
 
 #include "attr-mu/base.hpp"
 #include "attr-mu/named_tuple.hpp"
+#include "attr-mu/permute.hpp"
 
 #endif // _ATTR_MU_H_
