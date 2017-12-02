@@ -5,7 +5,7 @@ Experimental meta MU for class/structure attributes 'sizeof' optimization
 
 Create meta-programing tool to emulate **clang** and **gcc** `__attribute__((packed))` for optimal, both compiler- and POD-independent class attribute storage.
 
-[`__attribute__ ((reorder))` suggestion ][https://gcc.gnu.org/bugzilla/show_bug.cgi?id=31176]
+[`__attribute__ ((reorder))` suggestion ](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=31176)
 
 ## Motivation
 
