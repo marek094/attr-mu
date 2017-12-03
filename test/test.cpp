@@ -117,20 +117,6 @@ TEST_CASE( "A mu::named_tuple<> tests", "[named_tuple]" ) {
         
     }
     
-    SECTION( "Partial constructor" ) {
-        
-        using nt_t = named_tuple<
-            attr<"x"_mu, double>,
-            attr<"y"_mu, double>,
-            attr<"a][a"_mu, vector<int>>,
-            attr<"another"_mu, pair<int, int>>
-        >;
-        
-//        TODO: pairwise assigner
-        nt_t nt {make_named_tuple( attr<"x"_mu, double>(3.141592) )};
-        
-    }
-    
     SECTION( "Multiple assignment" ) {
         
         REQUIRE( a.at<"Hi"_mu>() == 3.14 );
@@ -312,6 +298,28 @@ TEST_CASE( "A mu::named_tuple<> tests", "[named_tuple]" ) {
         
     }
     
+    SECTION( "Partial constructor" ) {
+        
+        using nt_t = named_tuple<
+            attr<"x"_mu, double>,
+            attr<"y"_mu, double>,
+            attr<"z"_mu, double>,
+            attr<"a][a"_mu, vector<int>>,
+            attr<"another"_mu, pair<int, int>>
+        >;
+
+        nt_t nt_piece {
+              attr<"z"_mu, double>{1.},
+              attr<"y"_mu, double>{.2},
+              attr<"a][a"_mu, vector<int>>{1,2,3,4,5}
+        };
+        
+        REQUIRE( nt_piece.at<"z"_mu>() == 1.0 );
+        REQUIRE( nt_piece.at<"y"_mu>() == 0.2 );
+        REQUIRE( nt_piece.at<"a][a"_mu>().back() == 5 );
+        
+    }
+
 }
 
 TEST_CASE("A mu::named_tuple<> constructor swaps") {
@@ -326,7 +334,7 @@ TEST_CASE("A mu::named_tuple<> constructor swaps") {
         
         v = w;
         
-        named_tuple<attr<"a"_mu,unsigned>, attr<"b"_mu, string>> z = v;
+        named_tuple<attr<"a"_mu,unsigned>, attr<"b"_mu, string>> z{v};
         
         REQUIRE(v.at<"a"_mu>() == 12);
         REQUIRE(v.at<"b"_mu>() == "threefour");
@@ -361,7 +369,7 @@ TEST_CASE("A mu::named_tuple<> constructor swaps") {
     
 }
 
-TEST_CASE( "A mu::impl::assigner", "[mu::impl::assigner]" ) {
+TEST_CASE( "A mu::impl::swuffle", "[mu::impl::swuffle]" ) {
     
     using st = named_tuple<attr<"s"_mu, string>, attr<"u"_mu, unsigned>, attr<"d"_mu, double>>;
     using nd = named_tuple<attr<"u"_mu, unsigned>, attr<"d"_mu, double>, attr<"s"_mu, string>>;

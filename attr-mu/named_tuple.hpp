@@ -76,7 +76,10 @@ namespace mu {
 
         // <ImplObjects> {
         template<ull, typename...>
-        struct find { void operator()() {} };
+        struct find {
+            void operator()() {};
+            using type = void;
+        };
         // Search
         template<ull S, ull I, typename T, typename... Ts>
         struct find<S, list<attr<I,T>, Ts...>> : find<S, list<Ts...> > {
@@ -88,11 +91,16 @@ namespace mu {
             auto&& operator ()(const list_& list) { return list.val_.value(); }
             auto&& operator ()(list_&& list) { return list.val_.value(); }
             auto&& operator ()(const list_&& list) { return list.val_.value(); }
+            
+            using type = std::conditional_t<(S == I), T, typename find<S, list<Ts...>>::type>;
         };
-        
+
         // OutdatedNote: std::move from casted
         template<typename, typename List>
-        struct swuffle { inline list<> operator()(const List&) { return {}; } };
+        struct swuffle {
+            inline list<> operator()(const List&) { return {}; }
+            using match_type = list<>;
+        };
         
         template<typename List, ull I, typename T, typename... Ts>
         struct swuffle<list<attr<I,T>, Ts...>, List> : swuffle<list<Ts...>, List> {
@@ -109,6 +117,11 @@ namespace mu {
                 return { move( impl::find<I, List>{}( move(from) ) ),
                     move( swuffle<list<Ts...>, List>{}( move(from) ) ) };
             }
+            
+            using match_type = shift_t<
+                attr<I, typename find<I, List>::type >,
+                typename swuffle<list<Ts...>, List>::match_type
+            >;
         };
         // } </ImplObjects>
     }
@@ -129,13 +142,28 @@ namespace mu {
     public:
         template<typename...> friend class data;
         
+        constexpr data() {}
+        
+        // non-labeled full constructor
         template<class = std::enable_if_t<(size_ > 0)>>
         constexpr data(As&&... values) : data_tupl_{
             // Note: shuffle values to be sorted
             impl::swuffle<type_, unordered_type_>{}({std::forward<As>(values)...})
         } { }
 
-        constexpr data() {}
+        // labeled constructor
+        template<impl::ull... Is, typename... Ts, class = std::enable_if_t<(size_ > 0)>>
+        constexpr data(attr<Is, Ts>&&... values) {
+            assign_impl(list<attr<Is, Ts>...>{std::forward<attr<Is, Ts>>(values)...});
+        }
+        
+        // copy constructor
+        template<typename... AAs>
+        data(const data<AAs...>& p) { assign_impl(p.data_tupl_); }
+        
+        // move constructor
+        template<typename... AAs>
+        data(data<AAs...>&& p) { assign_impl(std::move(p.data_tupl_)); }
         
         template<typename... Ts>
         self_& operator= (const data<Ts...>& from) {
@@ -148,12 +176,6 @@ namespace mu {
             assign_impl(std::move(from.data_tupl_));
             return *this;
         }
-        
-        template<typename... AAs>
-        data(const data<AAs...>& p) { assign_impl(p.data_tupl_); }
-        
-        template<typename... AAs>
-        data(data<AAs...>&& p) { assign_impl(std::move(p.data_tupl_)); }
         
         template<impl::ull S>
         constexpr inline auto&& at() & {
