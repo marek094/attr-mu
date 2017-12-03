@@ -1,17 +1,27 @@
 # attr-MU
-Experimental meta MU for class/structure attributes 'sizeof' optimization
+Experimental meta MU containing both aligned and size optimized structure `mu::named_tuple<...>`.
 
-### Goal
+#### Demo
+```C++
+using point = named_tuple<
+    attr<"x"_mu, double>,
+    attr<"y"_mu, double>,
+    attr<"z"_mu, double>,
+    attr<"n a m e"_mu, std::string>
+>;
 
-Create meta-programing tool to emulate **clang** and **gcc** `__attribute__((packed))` for optimal, both compiler- and POD-independent class attribute storage.
+point p1 { 1.5, 3.5, 0.5, "/src/img/point.jpg"s };
+point p2 { make_attr<"x"_mu>(2.5), make_attr<"y"_mu>(2.6), make_attr<"z"_mu>(0.0) };
 
-[`__attribute__ ((reorder))` suggestion ](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=31176)
+cout << p1.at<"n a m e"_mu>() << endl; // `/src/img/point.jpg`
+cout << get<"x"_mu>( p2 ) << endl;     // `2.5`
+```
 
 ## Motivation
 
 Consider example:
 
-``` C++
+```C++
 using size24 = long long[3];
 //using size24 = std::string;
 
@@ -51,3 +61,4 @@ so we want to introduce something like `attr_mu::packed_tuple<...>` with named a
 ```
 Moreover when we set  `using size24 = std::string` with **gcc** we obtain: `warning: ignoring packed attribute because of unpacked non-POD field 'std::string packed_aligned_S::name'`.
 
+See: [suggestion `__attribute__ ((reorder))`](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=31176)
