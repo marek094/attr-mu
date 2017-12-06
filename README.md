@@ -36,6 +36,13 @@ struct packed_aligned_S { char sign; size24 name; bool is_man; long double weigh
 }__attribute__((packed, aligned));
 
 using tuple_S = std::tuple<char, size24, bool, long double>;
+
+using named_tuple_S = mu::named_tuple<
+    mu::attr<"sign"_mu, char>,
+    mu::attr<"name"_mu, size24>,
+    mu::attr<"is_man"_mu, bool>,
+    mu::attr<"weight"_mu, long double>
+>;
 ```
 
 The main point is that the order of attributes in declaration of class affects size of the structure in C++,
@@ -57,6 +64,8 @@ so we want to introduce something like `attr_mu::packed_tuple<...>` with named a
 | packed_S        | 42         | 1        |
 | packed_aligned_S| 48         | 16       |
 | tuple_S         | 64         | 16       |
++-----------------------------------------+
+| named_tuple_S   | 48         | 16       |
 +-----------------------------------------+
 ```
 Moreover when we set  `using size24 = std::string` with **gcc** we obtain: `warning: ignoring packed attribute because of unpacked non-POD field 'std::string packed_aligned_S::name'`.
