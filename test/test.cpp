@@ -41,11 +41,14 @@ TEST_CASE( "A mu::named_tuple<> implementation", "[named_tuple_impl]") {
         
     }
     
-    SECTION( "mu::impl::inheritable" ) {
+    SECTION( "mu::impl::dispatch" ) {
         
+        REQUIRE( std::is_same<impl::dispatch<int>, impl::wrap<int> >::value == true );
+
         class C {};
-        REQUIRE( std::is_same<C, mu::impl::inheritable<C>>::value == true );
-        REQUIRE( std::is_same<impl::wrap<int>, mu::impl::inheritable<int>>::value == true );
+        REQUIRE( std::is_same<impl::dispatch<C>, C>::value == true );
+        
+        REQUIRE( std::is_same<impl::dispatch<bool&>, impl::ref_wrap<bool>>::value == true );
     }
     
     SECTION( "'\"\" _mu' literal" ) {
