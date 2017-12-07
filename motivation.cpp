@@ -49,9 +49,9 @@ using named_tuple_S = mu::named_tuple<
     mu::attr<"weight"_mu, long double>
 >;
 
+#define PRINT_HEAD  printf("| %-16s| %-15s| %-15s|\n", "type", "sizeof (bytes)", "alignof")
 #define PRINT(type) printf("| %-16s| %-15lu| %-15lu|\n", #type, sizeof(type), alignof(type))
 #define PRINT_SEP   printf("+%s+\n", std::string(51, '-').c_str())
-#define PRINT_HEAD  printf("| %-16s| %-15s| %-15s|\n", "type", "sizeof (bytes)", "alignof")
 
 int main() {
     PRINT_SEP;
@@ -72,7 +72,7 @@ int main() {
     PRINT(named_tuple_S);
     PRINT_SEP;
     
-    return 0;
+    return {};
 }
 
 
